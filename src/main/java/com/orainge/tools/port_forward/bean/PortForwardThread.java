@@ -78,28 +78,23 @@ public class PortForwardThread extends Thread {
                 try {
                     // 读入数据
                     len = in.read(buffer);
-
-                    if (len == -1) {
-                        // 写入缓冲区剩余的数据
-                        writeOutputStream(out, buffer);
-
-                        // 退出循环
-                        break;
-                    }
                 } catch (Exception e) {
                     if (!(e instanceof SocketException)) {
                         // 读取异常
-                        if (isDebugEnabled) {
-                            log.debug("[端口转发线程] - [" + type.getDescription() + " - " + PortForwardType.getSubType(type, "1").getDescription() +
-                                    "] 从写入流 [in] 读取异常: 连接" + (sourceSocket.isClosed() ? "断开" : "正常"), e);
-                        }
+                        log.debug("[端口转发线程] - [" + type.getDescription() + " - " + PortForwardType.getSubType(type, "1").getDescription() +
+                                "] 从写入流 [in] 读取异常: 连接" + (sourceSocket.isClosed() ? "断开" : "正常"), e);
                     }
 
-                    break;
+                    len = -1;
                 }
 
                 // 写入数据
                 if (!(writeOutputStream(out, buffer))) {
+                    break;
+                }
+
+                if (len == -1) {
+                    // 退出循环
                     break;
                 }
 
@@ -124,11 +119,8 @@ public class PortForwardThread extends Thread {
         } catch (Exception e) {
             if (!(e instanceof SocketException)) {
                 // 读取异常
-                if (log.isDebugEnabled()) {
-                    // 获取 SocketTransferType
-                    log.debug("[端口转发线程] - [" + type.getDescription() + " - " + PortForwardType.getSubType(type, "2").getDescription() +
-                            "] 写入到输出流 [out] 异常: 连接" + (targetSocket.isClosed() ? "断开" : "正常"), e);
-                }
+                log.debug("[端口转发线程] - [" + type.getDescription() + " - " + PortForwardType.getSubType(type, "2").getDescription() +
+                        "] 写入到输出流 [out] 异常: 连接" + (targetSocket.isClosed() ? "断开" : "正常"), e);
             }
 
             return false;
